@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+  id="my-camera-plugin"
+  version="1.0.0">
+  <name>Cordova Camera Plugin</name>
+  <description></description>
+  <license>MIT</license>
+  <keywords></keywords>
+  <repo>https://github.com/driftyco/cordova-plugin-template.git</repo>
+  <issue>https://github.com/driftyco/cordova-plugin-template/issues</issue>
+
+
+  <js-module src="www/MyCameraPlugin.js" name="MyCameraPlugin"> <!-- src = path js  name = que
+    mostra quando se instala -->
+    <clobbers target="cordova.plugins.MyCameraPlugin" /> <!--Como
+    se encontra o plugin na window do browser-->
+  </js-module>
+
+  <!-- android -->
+  <platform name="android">
+
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="MyCameraPlugin">
+        <param name="android-package" value="com.outsystems.experts.MyCameraPlugin" />
+        <param name="onload" value="true" />
+      </feature>
+    </config-file>
+    <config-file parent="/manifest" target="AndroidManifest.xml">
+      <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+      <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+      <uses-permission android:name="android.permission.CAMERA" />
+    </config-file>
+
+    <source-file src="src/android/MyCameraPlugin.java" target-dir="src/com/outsystems/experts/" />
+
+  </platform>
+
+  <!-- ios
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="MyCordovaPlugin">
+                <param name="ios-package" value="MyCordovaPlugin" onload="true" />
+            </feature>
+        </config-file>
+
+        <header-file src="src/ios/MyCordovaPlugin.h" />
+        <source-file src="src/ios/MyCordovaPlugin.m" />
+    </platform>  -->
+</plugin>
