@@ -4,7 +4,6 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -12,43 +11,40 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 public class MyCameraPlugin extends CordovaPlugin {
-    private static final String TAG = "MyCordovaPlugin";
-    private static final int PERMISSION_REQUEST_CODE = 100;
+      private static final String TAG = "MyCordovaPlugin";
+      private static final int PERMISSION_REQUEST_CODE = 100;
 
+    @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
     }
 
+    @Override
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
         if (action.equals("openCamera")) {
             openCamera();
+            return true;
         }
-        return true;
+        return false;
     }
 
     private void openCamera() {
-        // Permissions to be requested
-        String[] permissions = new String[]{
+        // Permissions to request
+        String[] permissions = {
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.CAMERA
         };
 
         // Check and request permissions
         if (checkPermissions(permissions)) {
-            // Both permissions are granted, open the camera
-            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            if (cameraIntent.resolveActivity(cordova.getContext().getPackageManager()) != null) {
-                cordova.getActivity().startActivity(cameraIntent);
-            } else {
-                Toast.makeText(cordova.getContext(), "No Camera app available", Toast.LENGTH_SHORT).show();
-            }
+            // Permissions are already granted, open the camera
+            launchCamera();
         }
     }
 
@@ -63,49 +59,46 @@ public class MyCameraPlugin extends CordovaPlugin {
             }
         }
 
-        // Request permissions if any are not granted
+        // If permissions are not granted, request them
         if (!allPermissionsGranted) {
             ActivityCompat.requestPermissions(cordova.getActivity(), permissions, PERMISSION_REQUEST_CODE);
-            Toast.makeText(cordova.getContext(), "Requesting permissions", Toast.LENGTH_SHORT).show();
         }
 
         return allPermissionsGranted;
     }
 
+    // This method will be called after user responds to the permission dialog
     @Override
     public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
-        super.onRequestPermissionResult(requestCode, permissions, grantResults);
-
         if (requestCode == PERMISSION_REQUEST_CODE) {
             boolean cameraGranted = false;
             boolean storageGranted = false;
 
-            // Check which permissions were granted
+            // Check if permissions were granted
             for (int i = 0; i < permissions.length; i++) {
                 if (permissions[i].equals(Manifest.permission.CAMERA)) {
-                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                        cameraGranted = true;
-                    } else {
-                        Toast.makeText(cordova.getContext(), "Camera Permission Denied", Toast.LENGTH_SHORT).show();
-                    }
+                    cameraGranted = (grantResults[i] == PackageManager.PERMISSION_GRANTED);
                 } else if (permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                        storageGranted = true;
-                    } else {
-                        Toast.makeText(cordova.getContext(), "Storage Permission Denied", Toast.LENGTH_SHORT).show();
-                    }
+                    storageGranted = (grantResults[i] == PackageManager.PERMISSION_GRANTED);
                 }
             }
 
-            // Open camera if both permissions are granted
+            // If both permissions are granted, open the camera
             if (cameraGranted && storageGranted) {
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (cameraIntent.resolveActivity(cordova.getContext().getPackageManager()) != null) {
-                    cordova.getActivity().startActivity(cameraIntent);
-                } else {
-                    Toast.makeText(cordova.getContext(), "No Camera app available", Toast.LENGTH_SHORT).show();
-                }
+                launchCamera();
+            } else {
+                Toast.makeText(cordova.getContext(), "Camera and Storage permissions are required", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    // Launch the camera after permissions are granted
+    private void launchCamera() {
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (cameraIntent.resolveActivity(cordova.getContext().getPackageManager()) != null) {
+            cordova.getActivity().startActivity(cameraIntent);
+        } else {
+            Toast.makeText(cordova.getContext(), "No Camera app available", Toast.LENGTH_SHORT).show();
         }
     }
 }
